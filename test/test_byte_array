@@ -1,0 +1,27 @@
+import struct
+
+# Données brutes
+data = bytearray(b'2\x06\xbf\xaf@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xbf\xbf@\x00\x00\x00\x00\x00\xbf4\x00\x00\x00\x00\x00\x00\xbfD\x00\x00\x00\x00\x00\x00\xbf\\\x00\x00\x00\x00\x00\x00')
+
+# Extraction du header
+header = struct.unpack('!h', data[:2])[0]
+print(f"Header: {header}")
+
+# Extraction des 6 valeurs float64
+try:
+    fx = struct.unpack('!d', data[2:10])[0]
+    fy = struct.unpack('!d', data[10:18])[0]
+    fz = struct.unpack('!d', data[18:26])[0]
+    tx = struct.unpack('!d', data[26:34])[0]
+    ty = struct.unpack('!d', data[34:42])[0]
+    tz = struct.unpack('!d', data[42:50])[0]
+
+    print(f"Fx: {fx}")
+    print(f"Fy: {fy}")
+    print(f"Fz: {fz}")
+    print(f"Tx: {tx}")
+    print(f"Ty: {ty}")
+    print(f"Tz: {tz}")
+
+except struct.error as e:
+    print(f"Decoding error: {e}")
