@@ -33,7 +33,7 @@ def get_cosserat_gamma0(start,end,
     if init_shape is None:
         print("No initial shape provided, using Cosserat cable state to initialize.")
         pp_list = cosserat_get_cable_state(
-            start,end,n_elem=49,E=E)
+            start,end,n_elem=50,E=E)
 
         last_step = -1 
         init_shape = np.array(pp_list["position"][last_step]) 

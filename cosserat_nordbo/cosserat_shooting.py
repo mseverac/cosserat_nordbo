@@ -115,16 +115,6 @@ class CosseratShootingNode(Node):
                 time.sleep(1.0 / self.rate)
 
 
-                
-
-
-
-            
-            
-
-            
-
-
 
 
 def main(args=None):

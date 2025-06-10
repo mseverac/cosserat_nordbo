@@ -186,13 +186,6 @@ def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0,print_=
 
     p = sol.y[:3,-1]
 
-    if print_:
-        print("p:", p)
-        print("T3:", T3)
-        print("distance:", np.linalg.norm(p - T3))
-        print("R :" , sol.y[3:12,-1].reshape(3,3))
-        print("R3 :", R3)
-        print("diff angle:", rotation_angle_between(R3, sol.y[3:12,-1].reshape(3,3)))
 
     return sol
 """
