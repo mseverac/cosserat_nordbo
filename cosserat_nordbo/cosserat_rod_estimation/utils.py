@@ -129,6 +129,8 @@ def plot_cable(sol, color, ax, ax2, ax3, T3,n0=None, m0=None,E=None):
     # Plot the position of each point of the cable in the 3D figure
 
     if isinstance(sol, np.ndarray):
+
+        print("sol shape :",sol.shape)
         ax.plot(sol[0], sol[1], sol[2], label='Cable', color=color, linewidth=2)
 
         if E is not None:

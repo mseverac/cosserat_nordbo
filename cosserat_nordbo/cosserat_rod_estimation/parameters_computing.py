@@ -43,6 +43,9 @@ for m0 in m0s :
         print("n0:", n0)
         print("m0:", m0)"""
 
+        
+fig, ax, ax2, ax3 = initialize_plot()
+
 
 sols = None
 if sols is not None:

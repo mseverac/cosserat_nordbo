@@ -43,10 +43,17 @@ class GeneralConstraintSimulator(
 
 def cosserat_get_cable_state(start, end,start_rotation = np.matrix([[0,0,1],[0,1,0],[-1,0,0]],dtype=float), 
                              end_rotation =  np.matrix([[0,0,1],[0,1,0],[-1,0,0]],dtype=float) ,
-                             rod_length=0.6, n_elem=50,E=1e7, poisson_ratio=0.5,final_time=0.3,plot=False):
-    """Simule un câble avec les deux extrémités fixées et retourne pp_list."""
+                             rod_length=0.6, n_elem=50,E=1e7, poisson_ratio=0.5,final_time=0.3,plot=False,
+                             initial_position = None,
+                             damping_constant = 2.0,
+                             print_ = False,
+                             base_radius = 0.01,
+                                density = 1400,
+                             ):
     
-    print(f"Start: {start_rotation}, End: {end_rotation}")
+    if print_ :
+
+        print(f"Start: {start_rotation}, End: {end_rotation}")
     # Simulation container
     sim = GeneralConstraintSimulator()
 
@@ -56,23 +63,34 @@ def cosserat_get_cable_state(start, end,start_rotation = np.matrix([[0,0,1],[0,1
     end_direction = np.array(end_rotation[:, 2]).flatten()
     end_normal = np.array(end_rotation[:, 0]).flatten()
 
-    print(f"start normal: {normal}")
-    print(f"end normal: {end_normal}")
-    print(f"start direction: {direction}")
-    print(f"end direction: {end_direction}")
+
+    if print_ :
+
+        print(f"start normal: {normal}")
+        print(f"end normal: {end_normal}")
+        print(f"start direction: {direction}")
+        print(f"end direction: {end_direction}")
 
     
 
     # Parameters
     
-    base_radius = 0.01
-    density = 1400
+    
     shear_modulus = E / (1 + poisson_ratio)
 
-    initial_position = deltaZ_poly(start, end, L=rod_length, plot=False, nb_points=n_elem+1, print_distance=False)
+    if initial_position is None:
 
+        initial_position = deltaZ_poly(start, end, L=rod_length, plot=False, nb_points=n_elem+1, print_distance=False)
+
+
+    else :
+        if initial_position.shape[0] == 3 :
+            initial_position = initial_position.transpose()
+        
+
+        
     dt = 1e-5
-    damping_constant = 2.0
+
     total_steps = int(final_time / dt)
     diagnostic_step_skip = 5
 

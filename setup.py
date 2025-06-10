@@ -25,6 +25,9 @@ setup(
             "cosserat_shape = cosserat_nordbo.cosserat_shape:main",
             "cosserat_shooting = cosserat_nordbo.cosserat_shooting:main",
             "cosserat_jac_computing = cosserat_nordbo.cosserat_jac_computing:main",
+            "pyel_control = cosserat_nordbo.pyel_control:main",
+            "pyel_jacobian = cosserat_nordbo.pyel_jacobian:main",
+
         ],
     },
 )

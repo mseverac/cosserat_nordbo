@@ -207,6 +207,8 @@ class CosseratJacobianComputing(Node):
 
 
             if plot :
+
+                fig,ax,ax2,ax3 = initialize_plot()
                 self.get_logger().info(f'solution : {sol.y[:3]}')
                 plot_cable(sol, color=c, ax=ax, ax2=ax2, ax3=ax3, T3=np.array([0.6, 0, 0]), n0=n, m0=m, E=3e7)
 
