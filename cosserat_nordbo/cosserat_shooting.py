@@ -20,6 +20,7 @@ def trans_to_matrix(trans: TransformStamped):
     return r_curr.as_matrix(),np.array([pos.x, pos.y, pos.z])
 
 
+
 class CosseratShootingNode(Node):
     def __init__(self):
         super().__init__('cosserat_shooting')
@@ -28,38 +29,50 @@ class CosseratShootingNode(Node):
         self.timer = self.create_timer(0.1, self.timer_callback)
         self.base_frame = 'cam_bassa_base_frame'
         self.frames = ['ur_right_cable', 'ur_left_cable']
-
         self.shape_pub = self.create_publisher(
             Float32MultiArray, 'cosserat_shooting_shape', 10)
-        
         self.gamma_pub = self.create_publisher(
             Float64MultiArray, 'cosserat_shooting_gamma0', 10)
-
         self.transes = [None, None]
+        
+        # Variables pour stocker les données TCP
+        self.tcp_left = None
+        self.tcp_right = None
+        
+        # Subscribers pour les topics TCP
+        self.tcp_left_sub = self.create_subscription(
+            TransformStamped,
+            '/tcp_left',
+            self.tcp_left_callback,
+            10
+        )
+        self.tcp_right_sub = self.create_subscription(
+            TransformStamped,
+            '/tcp_right',
+            self.tcp_right_callback,
+            10
+        )
+        
         self.get_logger().info("CosseratShootingNode started.")
-
         self.rate = 10.0  # Hz
 
+    def tcp_left_callback(self, msg):
+        """Callback pour recevoir les données du topic /tcp_left"""
+        self.tcp_left = msg
+        self.get_logger().debug(f"Received TCP left: {msg.transform.translation.x:.3f}, "
+                              f"{msg.transform.translation.y:.3f}, "
+                              f"{msg.transform.translation.z:.3f}")
+
+    def tcp_right_callback(self, msg):
+        """Callback pour recevoir les données du topic /tcp_right"""
+        self.tcp_right = msg
+        self.get_logger().debug(f"Received TCP right: {msg.transform.translation.x:.3f}, "
+                               f"{msg.transform.translation.y:.3f}, "
+                               f"{msg.transform.translation.z:.3f}")
+        
+
     def timer_callback(self):
-        for i,frame in enumerate(self.frames):
-            try:
-                trans = self.tf_buffer.lookup_transform(
-                    self.base_frame,
-                    frame,
-                    rclpy.time.Time())
-                self.get_logger().info(
-                    f"Transform {frame} w.r.t {self.base_frame}: "
-                    f"Position: ({trans.transform.translation.x:.3f}, "
-                    f"{trans.transform.translation.y:.3f}, "
-                    f"{trans.transform.translation.z:.3f})")
-                
-                self.transes[i]=trans
-
-
-            except Exception as e:
-                self.get_logger().warn(f"Could not get transform for {frame}: {e}")
-
-       
+        self.transes = [self.tcp_right,self.tcp_left]
 
         if self.transes[0] is not None and self.transes[1] is not None:
 

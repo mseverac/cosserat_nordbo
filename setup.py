@@ -27,7 +27,8 @@ setup(
             "cosserat_jac_computing = cosserat_nordbo.cosserat_jac_computing:main",
             "pyel_control = cosserat_nordbo.pyel_control:main",
             "pyel_jacobian = cosserat_nordbo.pyel_jacobian:main",
-
+            "test_tcp_pub = cosserat_nordbo.test_tcp_pub:main",
+            "test_target_pub = cosserat_nordbo.test_target_pub:main"
         ],
     },
 )

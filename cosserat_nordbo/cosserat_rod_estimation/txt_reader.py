@@ -165,7 +165,7 @@ def initialize_plot(R2 =None,T2=None,R3=None,T3=None):
     # Frame 1: Identity
     R1 = np.eye(3)
     T1 = np.array([0, 0, 0])
-    plot_frame(ax, R1, T1, length=0.8, name="F0")
+    plot_frame(ax, R1, T1, length=0.2, name="F0")
 
     
 
@@ -186,12 +186,16 @@ def initialize_plot(R2 =None,T2=None,R3=None,T3=None):
 
 
 
-    plot_frame(ax, R1, T1, length=0.8, name="F0")
+    plot_frame(ax, R1, T1, length=0.2, name="F0")
 
-    plot_frame(ax, R2, T2, length=0.8, name="start")
+    if R2 is not None :
+
+        plot_frame(ax, R2, T2, length=0.2, name="start")
 
 
-    plot_frame(ax, R3, T3, length=0.8, name="end")
+    if R3 is not None :
+
+        plot_frame(ax, R3, T3, length=0.2, name="end")
 
     return fig, ax, ax2, ax3
 

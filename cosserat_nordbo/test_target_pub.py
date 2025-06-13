@@ -26,9 +26,9 @@ def quaternion_to_rotmat(quaternion_msg):
     q = [quaternion_msg.x, quaternion_msg.y, quaternion_msg.z, quaternion_msg.w]
     return R.from_quat(q).as_matrix()
 
-class Cosserat_shape(Node):
+class TestTargetPub(Node):
     def __init__(self):
-        super().__init__('cosserat_shape')
+        super().__init__('test_target_pub')
 
         #self.create_subscription(Bool, "call_init_shape", self.callback, 10)
 
@@ -36,7 +36,7 @@ class Cosserat_shape(Node):
 
         self.cosserat_shape_pub = self.create_publisher(
             Float32MultiArray,
-            'cosserat_shape',
+            'target_shape',
             10
         )
 
@@ -114,10 +114,8 @@ class Cosserat_shape(Node):
                     before = self.get_clock().now().to_msg()
 
                     pp_list = cosserat_get_cable_state(
-                        vector3_to_np(transform_right.transform.translation),
-                        vector3_to_np(transform_left.transform.translation),
-                        start_rotation=quaternion_to_rotmat(transform_right.transform.rotation),
-                        end_rotation=quaternion_to_rotmat(transform_left.transform.rotation),
+                        np.array([-0.15,0.6,0.0]),
+                        np.array([0.05,0.6,0.15]),
                         rod_length=0.5,
                         plot=False,
                         E=1e6
@@ -193,10 +191,8 @@ class Cosserat_shape(Node):
                     before = self.get_clock().now().to_msg()
 
                     pp_list = cosserat_get_cable_state(
-                        vector3_to_np(transform_right.transform.translation),
-                        vector3_to_np(transform_left.transform.translation),
-                        start_rotation=quaternion_to_rotmat(transform_right.transform.rotation),
-                        end_rotation=quaternion_to_rotmat(transform_left.transform.rotation),
+                        np.array([-0.15,0.6,0.0]),
+                        np.array([0.10,0.6,0.25]),
                         rod_length=0.5,
                         plot=False,
                         E=1e6
@@ -220,7 +216,7 @@ class Cosserat_shape(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = Cosserat_shape()
+    node = TestTargetPub()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

@@ -113,97 +113,138 @@ def format_scientific_notation(value):
     return f"{value:.2e}"
 
 
-def plot_cable(sol, color, ax, ax2, ax3, T3,n0=None, m0=None,E=None):
+def plot_cable(sol, color, ax, ax2, ax3, T3=None, n0=None, m0=None, E=None, points_tilles=False):
     """
     Plot the cable represented by sol on the provided axes.
-
     Parameters:
     - sol: The solution object containing the cable data.
     - color: The color to use for the cable.
     - ax: The 3D axis for the cable plot.
     - ax2: The 2D axis for the z vs x plot.
     - ax3: The 2D axis for the z vs y plot.
-    - ax4: The 2D axis for the x, y, z vs s plot.
     - T3: The reference point to scatter on the 2D plots.
+    - n0: n0 parameter for labeling
+    - m0: m0 parameter for labeling
+    - E: E parameter for labeling
+    - points_tilles: If True, draw the cable with dotted lines
     """
+    # Définir le style de ligne selon l'option points_tilles
+    linestyle = '--' if points_tilles else '-'
+    
     # Plot the position of each point of the cable in the 3D figure
-
     if isinstance(sol, np.ndarray):
-
-        print("sol shape :",sol.shape)
-        ax.plot(sol[0], sol[1], sol[2], label='Cable', color=color, linewidth=2)
-
+        if sol.shape[1] == 1:
+            sol = sol.reshape(3, -1)
+        ax.plot(sol[0], sol[1], sol[2], label='Cable', color=color, linewidth=2, linestyle=linestyle)
+        
         if E is not None:
-            ax2.plot(sol[0], sol[2], color=color,label="E : "+format_scientific_notation(E))
+            ax2.plot(sol[0], sol[2], color=color, label="E : "+format_scientific_notation(E), linestyle=linestyle)
             ax2.legend()
-
         else:
-            ax2.plot(sol[0], sol[2], color=color)
-
-
-        ax2.scatter(T3[0], T3[2], color='green', marker='x')
-
+            ax2.plot(sol[0], sol[2], color=color, linestyle=linestyle)
+        if T3 is not None: 
+            ax2.scatter(T3[0], T3[2], color='green', marker='x')
+        
         # Plot z vs y
-        if n0 is not None : 
-        
-            ax3.plot(sol[1], sol[2], color=color, label=f"n0 : {format_array_to_string(n0)} ,m0 : {format_array_to_string(m0)}")
+        if n0 is not None:
+            ax3.plot(sol[1], sol[2], color=color, label=f"n0 : {format_array_to_string(n0)} ,m0 : {format_array_to_string(m0)}", linestyle=linestyle)
             ax3.legend()
-
         else:
-            ax3.plot(sol[1], sol[2], color=color)
-
-        
-        ax3.scatter(T3[1], T3[2], color='green', marker='x')
-        
-
-
-
-
-
-
-
+            ax3.plot(sol[1], sol[2], color=color, linestyle=linestyle)
+        if T3 is not None:
+            ax3.scatter(T3[1], T3[2], color='green', marker='x')
     else:
-        ax.plot(sol.y[0], sol.y[1], sol.y[2], label='Cable', color=color, linewidth=2)
-
-        # Optionally, scatter the points for better visualization
-        #ax.scatter(sol.y[0], sol.y[1], sol.y[2], color=color, s=10, label='Cable Points')
-
+        ax.plot(sol.y[0], sol.y[1], sol.y[2], label='Cable', color=color, linewidth=2, linestyle=linestyle)
+        
         # Plot z vs x
         if E is not None:
-            ax2.plot(sol.y[0], sol.y[2], color=color,label="E : "+format_scientific_notation(E))
+            ax2.plot(sol.y[0], sol.y[2], color=color, label="E : "+format_scientific_notation(E), linestyle=linestyle)
             ax2.legend()
-
         else:
-            ax2.plot(sol.y[0], sol.y[2], color=color)
-
-
-        ax2.scatter(T3[0], T3[2], color='green', marker='x')
-
+            ax2.plot(sol.y[0], sol.y[2], color=color, linestyle=linestyle)
+        if T3 is not None:
+            ax2.scatter(T3[0], T3[2], color='green', marker='x')
+        
         # Plot z vs y
-        if n0 is not None : 
-        
-            ax3.plot(sol.y[1], sol.y[2], color=color, label=f"n0 : {format_array_to_string(n0)} ,m0 : {format_array_to_string(m0)}")
+        if n0 is not None:
+            ax3.plot(sol.y[1], sol.y[2], color=color, label=f"n0 : {format_array_to_string(n0)} ,m0 : {format_array_to_string(m0)}", linestyle=linestyle)
             ax3.legend()
-
-        
-        ax3.scatter(T3[1], T3[2], color='green', marker='x')
-        
-
-
+        else:
+            ax3.plot(sol.y[1], sol.y[2], color=color, linestyle=linestyle)
+        if T3 is not None:
+            ax3.scatter(T3[1], T3[2], color='green', marker='x')
 
 
+def plot_vector(v, point_application, color, ax, scale=1.0, label=None, arrow_length_ratio=0.1):
+    """
+    Plot une flèche représentant un vecteur sur un axe matplotlib.
+    
+    Parameters:
+    - v: array-like, le vecteur à représenter (3D: [vx, vy, vz] ou 2D: [vx, vy])
+    - point_application: array-like, le point d'application du vecteur (3D: [x, y, z] ou 2D: [x, y])
+    - color: str, la couleur de la flèche
+    - ax: matplotlib axis object, l'axe sur lequel tracer
+    - scale: float, facteur d'échelle pour la taille du vecteur (défaut: 1.0)
+    - label: str, étiquette pour la légende (optionnel)
+    - arrow_length_ratio: float, ratio de la taille de la pointe par rapport à la longueur totale
+    """
+    import numpy as np
+    
+    # Convertir en arrays numpy
+    v = np.array(v)
+    point_application = np.array(point_application)
+    
+    # Appliquer le facteur d'échelle
+    v_scaled = v * scale
+    
+    # Déterminer si c'est un plot 2D ou 3D
+    if hasattr(ax, 'zaxis'):  # Plot 3D
+        if len(v) == 3 and len(point_application) == 3:
+            ax.quiver(point_application[0], point_application[1], point_application[2],
+                     v_scaled[0], v_scaled[1], v_scaled[2],
+                     color=color, arrow_length_ratio=arrow_length_ratio,
+                     linewidth=2, label=label)
+        else:
+            raise ValueError("Pour un plot 3D, le vecteur et le point d'application doivent avoir 3 composantes")
+    else:  # Plot 2D
+        if len(v) == 2 and len(point_application) == 2:
+            ax.quiver(point_application[0], point_application[1],
+                     v_scaled[0], v_scaled[1],
+                     color=color, scale_units='xy', angles='xy', scale=1,
+                     width=0.005, label=label)
+        else:
+            raise ValueError("Pour un plot 2D, le vecteur et le point d'application doivent avoir 2 composantes")
+    
+    # Ajouter la légende si un label est fourni
+    if label is not None:
+        ax.legend()
 
-def show_plot(block=True, title=None,plot=True,folder="plots",save=True):
 
 
+import os
+import matplotlib.pyplot as plt
+
+def show_plot(block=True, title=None, plot=True, folder="plots", save=True):
     if title is not None and save:
         if not os.path.exists(folder):
             os.makedirs(folder)
         plt.savefig(f"{folder}/{title}.png")
         print(f"Plot saved as {folder}/{title}.png")
+    
     if plot:
         plt.tight_layout()
+        
+        # Gestionnaire d'événements pour fermer avec Échap
+        def on_key_press(event):
+            if event.key == 'escape':
+                plt.close('all')
+        
+        # Connecter le gestionnaire d'événements
+        fig = plt.gcf()  # Obtenir la figure courante
+        fig.canvas.mpl_connect('key_press_event', on_key_press)
+        
         plt.show(block=block)
-
+        
+        print("Appuyez sur Échap pour fermer le plot")
 
 
