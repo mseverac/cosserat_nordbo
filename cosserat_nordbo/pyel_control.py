@@ -100,9 +100,9 @@ class PyelControl(Node):
         marker.scale.x = 0.01
         marker.scale.y = 0.01
         marker.color.a = 1.0
-        marker.color.r = color[0]
-        marker.color.g = color[1]
-        marker.color.b = color[2]
+        marker.color.r = float(color[0])
+        marker.color.g = float(color[1])
+        marker.color.b = float(color[2])
         marker.points = [Point(x=float(p[0]), y=float(p[1]), z=float(p[2])) for p in points3d]
 
         pub.publish(marker)

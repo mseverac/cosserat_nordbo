@@ -28,7 +28,8 @@ setup(
             "pyel_control = cosserat_nordbo.pyel_control:main",
             "pyel_jacobian = cosserat_nordbo.pyel_jacobian:main",
             "test_tcp_pub = cosserat_nordbo.test_tcp_pub:main",
-            "test_target_pub = cosserat_nordbo.test_target_pub:main"
+            "test_target_pub = cosserat_nordbo.test_target_pub:main",
+            "pyel_shape = cosserat_nordbo.pyel_shape:main"
         ],
     },
 )

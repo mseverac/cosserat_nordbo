@@ -26,9 +26,9 @@ def quaternion_to_rotmat(quaternion_msg):
     q = [quaternion_msg.x, quaternion_msg.y, quaternion_msg.z, quaternion_msg.w]
     return R.from_quat(q).as_matrix()
 
-class Cosserat_shape(Node):
+class Pyel_shape(Node):
     def __init__(self):
-        super().__init__('cosserat_shape')
+        super().__init__('pyel_shape')
 
         self.create_subscription(Bool, "call_init_shape", self.callback, 10)
 
@@ -220,7 +220,7 @@ class Cosserat_shape(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = Cosserat_shape()
+    node = Pyel_shape()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
