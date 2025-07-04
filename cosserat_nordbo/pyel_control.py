@@ -34,6 +34,8 @@ class PyelControl(Node):
         super().__init__('pyel_control')
         self.A_pub = self.create_publisher(Float64MultiArray, '/jacobian', 10)
 
+        self.J = None
+
 
 
         self.create_subscription(
@@ -64,35 +66,50 @@ class PyelControl(Node):
     def publish_A(self):
         if hasattr(self, 'tcp_left') and hasattr(self, 'tcp_right'):
 
-            transform_right = self.tcp_right.transform
-            transform_left = self.tcp_left.transform
+            transform_right = self.tcp_right
+            transform_left = self.tcp_left
 
             before = self.get_clock().now().to_msg()
 
-            
-            Jac,curr_curve = compute_pyelastica_jacobian(
-            vector3_to_np(transform_right.transform.translation),
-            vector3_to_np(transform_left.transform.translation),
-            quaternion_to_rotmat(transform_right.transform.rotation),
-            quaternion_to_rotmat(transform_left.transform.rotation),
-            plot_cables=False,
-            n_elem = 50,
-            L=0.5,
-            )
+            if self.J is None :
+                Jac,curr_curve = compute_pyelastica_jacobian(
+                vector3_to_np(transform_right.transform.translation),
+                vector3_to_np(transform_left.transform.translation),
+                quaternion_to_rotmat(transform_right.transform.rotation),
+                quaternion_to_rotmat(transform_left.transform.rotation),
+                plot_cables=False,
+                n_elem = 50,
+                L=0.5,
+                )
+
+            else :
+                Jac,curr_curve = compute_pyelastica_jacobian(
+                vector3_to_np(transform_right.transform.translation),
+                vector3_to_np(transform_left.transform.translation),
+                quaternion_to_rotmat(transform_right.transform.rotation),
+                quaternion_to_rotmat(transform_left.transform.rotation),
+                plot_cables=False,
+                plot_all=True,
+                n_elem = 50,
+                L=0.5,
+                last_jac = self.J
+                ) 
+
 
             after = self.get_clock().now().to_msg()
             self.get_logger().info(f"Computation time of the jacobian: {time_msg_to_float(after) - time_msg_to_float(before):.4f}s")
 
 
-            Jp = np.linalg.pinv(Jac)
-            self.get_logger().info(f"shape of the jacobian: {Jp.shape}")
+            self.get_logger().info(f"shape of the jacobian: {Jac.shape}")
 
 
-            msg = Float32MultiArray()
+            msg = Float64MultiArray()
 
-            msg.data = Jp.flatten().astype(np.float32).tolist()
+            msg.data = Jac.flatten().astype(np.float32).tolist()
 
-            self.jac_pub.publish(msg)
+            self.A_pub.publish(msg)
+
+            self.J = Jac
 
 
         else:

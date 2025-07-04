@@ -6,7 +6,8 @@ from cosserat_nordbo.cosserat_rod_estimation.txt_reader import *
 from cosserat_nordbo.cosserat_rod_estimation.test_dx import compute_perturbed_inputs
 from copy import *
 
-
+def pp_list_to_s(pp_list):
+    return np.array(pp_list["position"][-1].transpose()).flatten()
 
 
 def compute_pyelastica_jacobian(start, end, R1, R2,
@@ -15,7 +16,12 @@ def compute_pyelastica_jacobian(start, end, R1, R2,
                                  final_time_init=0.04,
                                  final_time_ds=0.04,
                                  plot_cables=False,
-                                 points3d: np.ndarray = None):
+                                 plot_all=False,
+                                 points3d: np.ndarray = None,
+                                 last_jac = None,
+                                 dx = 0.01,
+                                 da = 0.1,
+                                 ):
 
     
     if points3d is None :
@@ -39,7 +45,11 @@ def compute_pyelastica_jacobian(start, end, R1, R2,
     else : 
         positions = points3d.transpose()
 
-    perturbed_pos = compute_perturbed_inputs(start,end,R1,R2,0.003,0.1)
+    perturbed_pos = compute_perturbed_inputs(start,end,R1,R2,dx,da)
+
+    drs = np.diag([dx,dx,dx,da,da,da,dx,dx,dx,da,da,da]) 
+    s0 = pp_list_to_s(pp_list)
+
 
     for i, (s, e, R1p, R2p) in enumerate(perturbed_pos):
 
@@ -49,18 +59,39 @@ def compute_pyelastica_jacobian(start, end, R1, R2,
         print(f"Start Rotation perturbed:\n{R1p}\n||| start : \n{R1}\n")
         print(f"End Rotation perturbed:\n{R2p}\n||| start : \n{R2}\n")
 """
-        pp_list1 = cosserat_get_cable_state(
-            s, e,
-            start_rotation=R1p, end_rotation=R2p,
-            final_time=final_time_ds,
-            damping_constant=1.0,
-            n_elem=n_elem,
 
-        )
+        if last_jac is not None :
+            print("computing initial position via last jacobian for cosserat get cable state")
+            dr = drs[i]
+            ds = last_jac @ dr.transpose()
+            s1 = s0 + ds
 
 
+            pp_list1 = cosserat_get_cable_state(
+                s, e,
+                start_rotation=R1p, end_rotation=R2p,
+                final_time=final_time_ds,
+                damping_constant=1.0,
+                n_elem=n_elem,
+                initial_position=s0.reshape(-1,3)
 
-        #plot_all_components(pp_list1, frames=frames)
+            )
+
+        else : 
+
+            pp_list1 = cosserat_get_cable_state(
+                s, e,
+                start_rotation=R1p, end_rotation=R2p,
+                final_time=final_time_ds,
+                damping_constant=1.0,
+                n_elem=n_elem,
+            )
+
+        s1 = pp_list_to_s(pp_list1)
+
+
+
+        if plot_all :plot_all_components(pp_list1)
 
         
 
@@ -73,7 +104,7 @@ def compute_pyelastica_jacobian(start, end, R1, R2,
 
             show_plot()
 
-        ds = (np.array(pp_list1["position"][-1]).flatten()-np.array(positions).flatten()).reshape(-1,1)
+        ds = ((s1-s0)/drs[i,i]).reshape(-1,1)
 
         if Jac is None :
             Jac = ds.copy()
