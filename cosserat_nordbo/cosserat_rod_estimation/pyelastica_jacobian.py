@@ -9,33 +9,35 @@ from copy import *
 
 
 
-def compute_pyelastica_jacobian(start, end, R1 , R2 , 
+def compute_pyelastica_jacobian(start, end, R1, R2,
                                  n_elem=49, E=3e7, poisson=0.5, rho=1400,
                                  d=0.01, L=0.60,
-                                 final_time_init = 0.04,
-                                 final_time_ds = 0.04,
-                                 plot_cables = False,
-                                 ):
-    
+                                 final_time_init=0.04,
+                                 final_time_ds=0.04,
+                                 plot_cables=False,
+                                 points3d: np.ndarray = None):
 
     
+    if points3d is None :
     
-    
 
-    pp_list = cosserat_get_cable_state(start, end, 
-                                        start_rotation = R1, end_rotation = R2,
-                                        final_time=final_time_init,
-                                        n_elem=n_elem,E=E,base_radius=d,poisson_ratio=poisson,density=rho,
-                                        )
+        pp_list = cosserat_get_cable_state(start, end, 
+                                            start_rotation = R1, end_rotation = R2,
+                                            final_time=final_time_init,
+                                            n_elem=n_elem,E=E,base_radius=d,poisson_ratio=poisson,density=rho,
+                                            )
 
-    
-    Jac = None
+        
+        Jac = None
 
-    #plot_all_components(pp_list,frames=frames)
+        #plot_all_components(pp_list,frames=frames)
 
 
-    last_step = -1
-    positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)
+        last_step = -1
+        positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)
+
+    else : 
+        positions = points3d.transpose()
 
     perturbed_pos = compute_perturbed_inputs(start,end,R1,R2,0.003,0.1)
 
