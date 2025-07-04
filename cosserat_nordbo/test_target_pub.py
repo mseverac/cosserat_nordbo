@@ -36,7 +36,7 @@ class TestTargetPub(Node):
 
         self.cosserat_shape_pub = self.create_publisher(
             Float32MultiArray,
-            'target_shape',
+            'curve_target_6dof',
             10
         )
 
