@@ -182,10 +182,7 @@ def compute_jacobian(g0,dx = 0.015,
     
     dgs,drs = get_dgamma0s(g0, dx, dtheta, dn, dm)
 
-    print(f"drs : {drs}")
     
-
-
     cmap = plt.get_cmap('coolwarm')
     colors = [cmap(i / 11) for i in range(12)]
 
