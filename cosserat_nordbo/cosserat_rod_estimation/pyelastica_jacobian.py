@@ -12,43 +12,65 @@ def pp_list_to_s(pp_list):
 
 def compute_pyelastica_jacobian(start, end, R1, R2,
                                  n_elem=49, E=3e7, poisson=0.5, rho=1400,
-                                 d=0.01, L=0.60,
+                                 d=0.01,
                                  final_time_init=0.04,
                                  final_time_ds=0.04,
                                  plot_cables=False,
                                  plot_all=False,
                                  points3d: np.ndarray = None,
                                  last_jac = None,
-                                 dx = 0.01,
-                                 da = 0.1,
+                                 dx = 0.02,
+                                 da = 0.2,
+                                 L=0.5,
+                                 damping1=1.0,
+                                 damping2=1.0,
+                                 ka = 1,
                                  ):
 
-    
-    if points3d is None :
-    
+    Jac = None
 
+    if points3d is None :
         pp_list = cosserat_get_cable_state(start, end, 
                                             start_rotation = R1, end_rotation = R2,
                                             final_time=final_time_init,
                                             n_elem=n_elem,E=E,base_radius=d,poisson_ratio=poisson,density=rho,
+                                            rod_length=L,
+                                            damping_constant=damping1,
+
                                             )
+        s0 = pp_list_to_s(pp_list)
 
-        
-        Jac = None
 
-        #plot_all_components(pp_list,frames=frames)
+        if plot_all:
+            plot_all_components(pp_list,rod_length=0.5)
 
 
         last_step = -1
         positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)
 
     else : 
-        positions = points3d.transpose()
+        pp_list = cosserat_get_cable_state(start, end, 
+                                            start_rotation = R1, end_rotation = R2,
+                                            final_time=final_time_init,
+                                            n_elem=n_elem,E=E,base_radius=d,poisson_ratio=poisson,density=rho,
+                                            rod_length=L,
+                                            initial_position=points3d.reshape(-1,3).transpose(),
+                                            damping_constant=damping2,
+                                            )
+        s0 = pp_list_to_s(pp_list)
+
+
+        if plot_all:plot_all_components(pp_list,rod_length=0.5)
+
+
+        last_step = -1
+        positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)
 
     perturbed_pos = compute_perturbed_inputs(start,end,R1,R2,dx,da)
 
     drs = np.diag([dx,dx,dx,da,da,da,dx,dx,dx,da,da,da]) 
-    s0 = pp_list_to_s(pp_list)
+
+    drsn = [dx,dx,dx,da/ka,da/ka,da/ka,dx,dx,dx,da/ka,da/ka,da/ka]
 
 
     for i, (s, e, R1p, R2p) in enumerate(perturbed_pos):
@@ -71,10 +93,11 @@ def compute_pyelastica_jacobian(start, end, R1, R2,
                 s, e,
                 start_rotation=R1p, end_rotation=R2p,
                 final_time=final_time_ds,
-                damping_constant=1.0,
+                damping_constant=damping2,
                 n_elem=n_elem,
-                initial_position=s0.reshape(-1,3)
-
+                initial_position=s1.reshape(-1,3),
+                rod_length=L,
+                E=E,
             )
 
         else : 
@@ -83,15 +106,17 @@ def compute_pyelastica_jacobian(start, end, R1, R2,
                 s, e,
                 start_rotation=R1p, end_rotation=R2p,
                 final_time=final_time_ds,
-                damping_constant=1.0,
+                damping_constant=damping1,
                 n_elem=n_elem,
+                rod_length=L,
+                E=E,
             )
 
         s1 = pp_list_to_s(pp_list1)
 
 
 
-        if plot_all :plot_all_components(pp_list1)
+        if plot_all :plot_all_components(pp_list1,s_init=s0)
 
         
 
@@ -104,7 +129,7 @@ def compute_pyelastica_jacobian(start, end, R1, R2,
 
             show_plot()
 
-        ds = ((s1-s0)/drs[i,i]).reshape(-1,1)
+        ds = ((s1-s0)/drsn[i]).reshape(-1,1)
 
         if Jac is None :
             Jac = ds.copy()

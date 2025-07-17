@@ -79,6 +79,9 @@ class CosseratShootingNode(Node):
             R1,start = trans_to_matrix(self.transes[0])
             R2,end = trans_to_matrix(self.transes[1])
 
+
+            R1 = np.array([[0.0,0.0,1.0],[0.0,1.0,0.0],[-1.0,0.0,0.0]])
+
             self.get_logger().info(f"Right Rotation Matrix:\n{R1}")
             self.get_logger().info(f"Left Rotation Matrix:\n{R2}")
             self.get_logger().info(f"Right Start Position: {start}")

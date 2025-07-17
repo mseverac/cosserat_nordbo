@@ -35,6 +35,9 @@ class PyelControl(Node):
         self.A_pub = self.create_publisher(Float64MultiArray, '/jacobian', 10)
 
         self.J = None
+        self.s = None
+
+        self.create_subscription(Float32MultiArray,"/points3d",self.s_cb,10)
 
 
 
@@ -54,6 +57,9 @@ class PyelControl(Node):
 
         self.create_timer(0.1, self.publish_A)  
 
+    def s_cb(self,msg):
+        self.s = np.array(msg.data)
+
 
         
     def tcp_right_callback(self, msg : TransformStamped):
@@ -65,6 +71,11 @@ class PyelControl(Node):
 
     def publish_A(self):
         if hasattr(self, 'tcp_left') and hasattr(self, 'tcp_right'):
+
+            if self.s is None :
+                self.get_logger().info("Waiting for points 3d")
+                return
+
 
             transform_right = self.tcp_right
             transform_left = self.tcp_left
@@ -78,8 +89,14 @@ class PyelControl(Node):
                 quaternion_to_rotmat(transform_right.transform.rotation),
                 quaternion_to_rotmat(transform_left.transform.rotation),
                 plot_cables=False,
+                plot_all=False,
+                #points3d=self.s,
+
                 n_elem = 50,
                 L=0.5,
+                final_time_ds=0.025,
+                final_time_init=0.025,
+                ka = 1,
                 )
 
             else :
@@ -89,10 +106,15 @@ class PyelControl(Node):
                 quaternion_to_rotmat(transform_right.transform.rotation),
                 quaternion_to_rotmat(transform_left.transform.rotation),
                 plot_cables=False,
-                plot_all=True,
+                plot_all=False,
                 n_elem = 50,
                 L=0.5,
-                last_jac = self.J
+                last_jac = self.J,
+                final_time_ds=0.018,
+                final_time_init=0.035,
+                #points3d=self.s.reshape(-1,3),
+                damping2=0.5,
+                ka = 1,
                 ) 
 
 

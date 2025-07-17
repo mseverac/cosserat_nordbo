@@ -19,7 +19,7 @@ from rclpy.wait_for_message import wait_for_message
 from rclpy.executors import MultiThreadedExecutor
 import threading
 
-from geometry_msgs.msg import Point, Twist,TwistStamped
+from geometry_msgs.msg import Point, Twist,TwistStamped,PoseStamped
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import TransformStamped
 
@@ -80,6 +80,9 @@ class CosseratJacobianComputing(Node):
 
         self.publisher_points_rviz = self.create_publisher(Marker, "gamma0_curve_marker", 1)
         self.publisher_points_rviz_kp1 = self.create_publisher(Marker, "gamma0_kp1_curve_marker", 1)
+
+        self.pose_l_pub = self.create_publisher(PoseStamped, 'pose_l', 10)
+        self.pose_r_pub = self.create_publisher(PoseStamped, 'pose_r', 10)
 
 
         self.get_logger().info(f'Waiting for gamma0 from shooting')
@@ -210,10 +213,10 @@ class CosseratJacobianComputing(Node):
             else :
 
                 k_pred = 0.1
-                k_cmd = 0.4
+                k_cmd = 0.5
 
-                k = 0.5
-                ka = 0.005
+                k = 0.1
+                ka = 0.05
 
                 pvis = self.pvis
 
@@ -303,6 +306,34 @@ class CosseratJacobianComputing(Node):
 
                         Rcl = (Rc[:,-1].reshape(3,3))
                         Rcr = (Rc[:,0].reshape(3,3))
+
+                        qcl = R.from_matrix(Rcl).as_quat()
+                        qcr = R.from_matrix(Rcr).as_quat()
+
+                        # Create PoseStamped for left
+                        PSl = PoseStamped()
+                        PSl.header.frame_id = "cam_bassa_base_frame"
+                        PSl.pose.position.x = float(pcl[0])
+                        PSl.pose.position.y = float(pcl[1])
+                        PSl.pose.position.z = float(pcl[2])
+                        PSl.pose.orientation.x = float(qcl[0])
+                        PSl.pose.orientation.y = float(qcl[1])
+                        PSl.pose.orientation.z = float(qcl[2])
+                        PSl.pose.orientation.w = float(qcl[3])
+
+                        # Create PoseStamped for right
+                        PSr = PoseStamped()
+                        PSr.header.frame_id = "cam_bassa_base_frame"
+                        PSr.pose.position.x = float(pcr[0])
+                        PSr.pose.position.y = float(pcr[1])
+                        PSr.pose.position.z = float(pcr[2])
+                        PSr.pose.orientation.x = float(qcr[0])
+                        PSr.pose.orientation.y = float(qcr[1])
+                        PSr.pose.orientation.z = float(qcr[2])
+                        PSr.pose.orientation.w = float(qcr[3])
+
+                        self.pose_l_pub.publish(PSl)
+                        self.pose_r_pub.publish(PSr)
 
 
                         R1l,pl = trans_to_matrix(lt)

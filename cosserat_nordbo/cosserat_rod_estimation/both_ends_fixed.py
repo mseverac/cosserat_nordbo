@@ -109,7 +109,7 @@ def cosserat_get_cable_state(start, end,start_rotation = np.matrix([[0,0,1],[0,1
 
     # Initial conditions
     rod.velocity_collection[:] = 0.0
-    rod.position_collection[2, :] += 0.001 * np.random.randn(n_elem + 1)
+    #rod.position_collection[2, :] += 0.001 * np.random.randn(n_elem + 1)
     rod.position_collection = initial_position.transpose()
     """
 
@@ -230,6 +230,57 @@ def cosserat_get_cable_state(start, end,start_rotation = np.matrix([[0,0,1],[0,1
 
 
 
+def plot_all_components_2d(pp_list, rod_length=0.6, pos_init=None):
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Récupérer les dernières données
+    last_step = -1
+    positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)
+    positions_initial = np.array(pp_list["position"][0])  # Shape (3, n_elem+1)
+
+    # Indices pour les quartiles
+    mid_idx = positions.shape[1] // 2
+    quarter_idx = positions.shape[1] // 4
+    three_quarter_idx = 3 * positions.shape[1] // 4
+
+    # Récupérer les positions Z au cours du temps
+    time = np.array(pp_list["time"])
+    mid_positions = [pos[2, mid_idx] for pos in pp_list["position"]]
+    quarter_positions = [pos[2, quarter_idx] for pos in pp_list["position"]]
+    three_quarter_positions = [pos[2, three_quarter_idx] for pos in pp_list["position"]]
+
+    # Créer la figure avec deux sous-graphes
+    fig, axs = plt.subplots(2, 1, figsize=(10, 10))
+
+    # Plot quartiles Z position vs time
+    axs[0].plot(time, mid_positions, label='Midpoint (1/2)', color='b')
+    axs[0].plot(time, quarter_positions, label='First Quartile (1/4)', color='r')
+    axs[0].plot(time, three_quarter_positions, label='Third Quartile (3/4)', color='g')
+
+    axs[0].set_title('Z-Position of Quartiles Along the Cable Over Time')
+    axs[0].set_xlabel('Time (s)')
+    axs[0].set_ylabel('Z Position (m)')
+    axs[0].legend()
+    axs[0].grid(True)
+
+    # Plot 2D shape in XZ plane
+    axs[1].plot(positions_initial[0], positions_initial[2], label='Initial Shape', color='orange', linestyle='--')
+    if pos_init is not None:
+        axs[1].plot(pos_init[0], pos_init[2], label='Initial Input', color='b')
+    axs[1].plot(positions[0], positions[2], label='Final Shape', color='r')
+    axs[1].scatter(positions[0, 0], positions[2, 0], color='r', label='Start Point')
+    axs[1].scatter(positions[0, -1], positions[2, -1], color='g', label='End Point')
+
+    axs[1].set_title('2D Shape of the Cable (XZ Plane)')
+    axs[1].set_xlabel('X (m)')
+    axs[1].set_ylabel('Z (m)')
+    axs[1].legend()
+    axs[1].grid(True)
+    axs[1].axis('equal')
+
+    plt.tight_layout()
+    plt.show()
 
 
 
@@ -242,7 +293,7 @@ def cosserat_get_cable_state(start, end,start_rotation = np.matrix([[0,0,1],[0,1
 
 
 
-def plot_all_components(pp_list, rod_length=0.6, plot_3d=True,frames=None):
+def plot_all_components(pp_list, rod_length=0.6, plot_3d=True,frames=None,pos_init = None,s_init=None):
     # Récupérer les dernières données
     last_step = -1
     positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)
@@ -289,7 +340,14 @@ def plot_all_components(pp_list, rod_length=0.6, plot_3d=True,frames=None):
         ax.set_ylim([0.5, 0.9])
         ax.set_zlim([-0.0, 0.5])
 
-        ax.plot(positions[0], positions[1], positions[2], label='Rod Shape', color='b')
+        if pos_init is not None :
+            ax.plot(pos_init[0], pos_init[1], pos_init[2], label='initial Shape', color='b')
+
+        if s_init is not None :
+            pos_init=s_init.reshape(-1,3).transpose()
+            ax.plot(pos_init[0], pos_init[1], pos_init[2], label='initial Shape', color='b')
+
+        ax.plot(positions[0], positions[1], positions[2], label='Rod Shape', color='r')
         ax.plot(positions_initial[0], positions_initial[1], positions_initial[2], label='Initial Shape', color='orange', linestyle='--')
         ax.scatter(positions[0, 0], positions[1, 0], positions[2, 0], color='r', label='Start Point')
         ax.scatter(positions[0, -1], positions[1, -1], positions[2, -1], color='g', label='End Point')

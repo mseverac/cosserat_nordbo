@@ -25,7 +25,7 @@ def compute_perturbed_inputs(start,end,start_rotation,end_rotation,epsilon,dthet
         # Rotation autour de chaque axe pour start_rotation
         rotvec = dtheta * directions[i]
         delta_rot = R.from_rotvec(rotvec).as_matrix()
-        start_rot_pert =  start_rotation @ delta_rot.T
+        start_rot_pert =  delta_rot @ start_rotation 
         perturbed_inputs.append((
             start.copy(), end.copy(),
             start_rot_pert, end_rotation.copy()
@@ -44,7 +44,7 @@ def compute_perturbed_inputs(start,end,start_rotation,end_rotation,epsilon,dthet
         # Rotation autour de chaque axe pour end_rotation
         rotvec = dtheta * directions[i]
         delta_rot = R.from_rotvec(rotvec).as_matrix()
-        end_rot_pert = delta_rot @ end_rotation
+        end_rot_pert =   delta_rot @ end_rotation
         perturbed_inputs.append((
             start.copy(), end.copy(),
             start_rotation.copy(), end_rot_pert
